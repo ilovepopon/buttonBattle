@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Battle 1 - Button Battle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #10131a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      padding: 16px;
+    }
+
+    .card {
+      background: #0f172a;
+      border-radius: 16px;
+      padding: 20px 24px 24px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+      border: 1px solid #1f2937;
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .status-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+    }
+
+    .phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .phase-idle {
+      background: rgba(148, 163, 184, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+    }
+
+    .phase-playing {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+    }
+
+    .phase-finished {
+      background: rgba(248, 113, 113, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.75);
+      color: #fecaca;
+    }
+
+    .timer {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .timer span {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-card {
+      border-radius: 16px;
+      padding: 16px 18px 18px;
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 55%);
+      border: 1px solid rgba(55, 65, 81, 0.9);
+    }
+
+    .player-card.p2 {
+      background: radial-gradient(circle at top right, rgba(244, 63, 94, 0.16), transparent 55%);
+    }
+
+    .player-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .player-name {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .score-label {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .score-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .winner-badge {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(250, 204, 21, 0.8);
+      color: #facc15;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.1s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: none;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #ecfdf5;
+      box-shadow: 0 10px 25px rgba(22, 163, 74, 0.45);
+    }
+
+    button.secondary {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fee2e2;
+      box-shadow: 0 10px 25px rgba(185, 28, 28, 0.55);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .log {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(75, 85, 99, 0.8);
+      font-size: 0.8rem;
+      max-height: 120px;
+      overflow-y: auto;
+      color: #9ca3af;
+      line-height: 1.5;
+      scrollbar-width: thin;
+    }
+
+    .log-entry {
+      opacity: 0.85;
+    }
+
+    .log-entry span {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ws-status {
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ws-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #f97316;
+      box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+
+    .ws-dot.connected {
+      background: #22c55e;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+
+    .ws-dot.disconnected {
+      background: #ef4444;
+      box-shadow: none;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+      }
+      70% {
+        transform: scale(1.4);
+        box-shadow: 0 0 0 12px rgba(249, 115, 22, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <div>
+          <div class="title">Button Battle</div>
+          <div class="status-line">
+            <div id="phase-pill" class="phase-pill phase-idle">
+              <span>PHASE</span>
+              <span id="phase-text">idle</span>
+            </div>
+            <div class="timer">
+              TIME: <span id="time-left">10</span> s
+            </div>
+          </div>
+        </div>
+        <div class="ws-status">
+          <div id="ws-dot" class="ws-dot"></div>
+          <span id="ws-label">接続中...</span>
+        </div>
+      </div>
+
+      <div class="main-grid">
+        <div class="player-card p1">
+          <div class="player-header">
+            <div>
+              <div class="player-name">Player 1</div>
+              <div class="score-label">SCORE</div>
+            </div>
+          </div>
+          <div id="score-p1" class="score-value">0</div>
+          <div id="winner-p1" class="winner-badge" style="display: none;">
+            ★ WINNER
+          </div>
+        </div>
+
+        <div class="player-card p2">
+          <div class="player-header">
+            <div>
+              <div class="player-name">Player 2</div>
+              <div class="score-label">SCORE</div>
+            </div>
+          </div>
+          <div id="score-p2" class="score-value">0</div>
+          <div id="winner-p2" class="winner-badge" style="display: none;">
+            ★ WINNER
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="button-row">
+          <button id="start-btn" class="primary">
+            ▶ Start
+          </button>
+          <button id="reset-btn" class="secondary">
+            ⟳ Reset
+          </button>
+          <button id="force-finish-btn" class="danger">
+            ■ Force Finish
+          </button>
+        </div>
+        <div class="hint">
+          ※ RasPi 側の物理ボタン（B_server）が押されるとスコアが増えます
+        </div>
+      </div>
+
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+
+    const phaseTextEl = document.getElementById("phase-text");
+    const phasePillEl = document.getElementById("phase-pill");
+    const timeEl = document.getElementById("time-left");
+    const scoreP1El = document.getElementById("score-p1");
+    const scoreP2El = document.getElementById("score-p2");
+    const winnerP1El = document.getElementById("winner-p1");
+    const winnerP2El = document.getElementById("winner-p2");
+
+    const startBtn = document.getElementById("start-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const forceFinishBtn = document.getElementById("force-finish-btn");
+
+    const wsDot = document.getElementById("ws-dot");
+    const wsLabel = document.getElementById("ws-label");
+    const logEl = document.getElementById("log");
+
+    function log(msg) {
+      const now = new Date();
+      const t = now.toTimeString().slice(0, 8);
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      div.innerHTML = `<span>[${t}]</span> ${msg}`;
+      logEl.prepend(div);
+    }
+
+    function setPhase(phase) {
+      phaseTextEl.textContent = phase;
+
+      phasePillEl.classList.remove("phase-idle", "phase-playing", "phase-finished");
+      if (phase === "playing") {
+        phasePillEl.classList.add("phase-playing");
+      } else if (phase === "finished") {
+        phasePillEl.classList.add("phase-finished");
+      } else {
+        phasePillEl.classList.add("phase-idle");
+      }
+
+      // ボタンの有効/無効
+      if (phase === "playing") {
+        startBtn.disabled = true;
+        resetBtn.disabled = false;
+        forceFinishBtn.disabled = false;
+      } else if (phase === "finished") {
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        forceFinishBtn.disabled = true;
+      } else {
+        // idle
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+        forceFinishBtn.disabled = true;
+      }
+    }
+
+    function updateWinnerDisplay(p1, p2, phase) {
+      winnerP1El.style.display = "none";
+      winnerP2El.style.display = "none";
+
+      if (phase !== "finished") return;
+
+      if (p1 === p2) {
+        // 引き分け
+        log("⇒ Draw!");
+        return;
+      }
+      if (p1 > p2) {
+        winnerP1El.style.display = "inline-flex";
+        log("⇒ Player 1 wins!");
+      } else {
+        winnerP2El.style.display = "inline-flex";
+        log("⇒ Player 2 wins!");
+      }
+    }
+
+    function updateState(data) {
+      const p1 = data.p1 ?? 0;
+      const p2 = data.p2 ?? 0;
+      const t = data.time ?? 0;
+      const phase = data.phase ?? "idle";
+
+      scoreP1El.textContent = p1;
+      scoreP2El.textContent = p2;
+      timeEl.textContent = t;
+
+      setPhase(phase);
+      updateWinnerDisplay(p1, p2, phase);
+    }
+
+    function setWsStatus(status) {
+      wsDot.classList.remove("connected", "disconnected");
+      if (status === "connected") {
+        wsDot.classList.add("connected");
+        wsLabel.textContent = "接続中";
+      } else if (status === "disconnected") {
+        wsDot.classList.add("disconnected");
+        wsLabel.textContent = "未接続（自動再接続中…）";
+      } else {
+        // connecting
+        wsLabel.textContent = "接続中…";
+      }
+    }
+
+    function sendMessage(obj) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        log("⚠ WebSocket が開いていないため送信できません");
+        return;
+      }
+      ws.send(JSON.stringify(obj));
+    }
+
+    function connectWs() {
+      const url = `ws://${location.host}/ws`; // g_serverv1.py の /ws に接続
+      log(`WebSocket 接続: ${url}`);
+      setWsStatus("connecting");
+
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        log("✅ WebSocket オープン");
+        setWsStatus("connected");
+      };
+
+      ws.onmessage = (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          if (data.type === "state") {
+            updateState(data);
+          } else {
+            log(`受信: ${ev.data}`);
+          }
+        } catch (e) {
+          console.error(e);
+          log("⚠ JSON 解析エラー");
+        }
+      };
+
+      ws.onclose = (ev) => {
+        log(`WebSocket クローズ: code=${ev.code}`);
+        setWsStatus("disconnected");
+        // 自動再接続
+        setTimeout(connectWs, 1500);
+      };
+
+      ws.onerror = (ev) => {
+        console.error("WebSocket error:", ev);
+        log("⚠ WebSocket エラー");
+      };
+    }
+
+    // ---- ボタンイベント ----
+    startBtn.addEventListener("click", () => {
+      log("▶ Start を送信");
+      sendMessage({ type: "start" });
+    });
+
+    resetBtn.addEventListener("click", () => {
+      log("⟳ Reset を送信");
+      sendMessage({ type: "reset" });
+    });
+
+    // 「強制終了」は TIME_LEFT を 0 にするのではなく、
+    // サーバロジックを崩さないため Battle UI 側だけの演出にしておく。
+    forceFinishBtn.addEventListener("click", () => {
+      log("■ Force Finish（UI 上の強制終了）");
+      setPhase("finished");
+      updateWinnerDisplay(
+        parseInt(scoreP1El.textContent || "0", 10),
+        parseInt(scoreP2El.textContent || "0", 10),
+        "finished"
+      );
+    });
+
+    // 初期状態
+    setPhase("idle");
+    setWsStatus("connecting");
+    connectWs();
+  </script>
+</body>
+</html>
