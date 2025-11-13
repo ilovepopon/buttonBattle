@@ -16,7 +16,7 @@ from grove_rgb_lcd import setText, setRGB
 # =====================================
 
 # G_server.py を動かしている PC の IP アドレス or ホスト名
-G_SERVER_HOST = "192.168.0.10"      # ← ここを直す！
+G_SERVER_HOST = "10.77.98.125"      # ← ここを直す！
 G_SERVER_PORT = 8000                # G_server.py のポート
 
 # この RasPi が担当するプレイヤー番号
@@ -122,9 +122,9 @@ async def button_loop(ws: websockets.WebSocketClientProtocol):
                 pressed = False
 
             # --- 各種センサー
-            usrange = grovepi.ultrasonicRead(ULTRASONIC_PORT)
-            light_val = grovepi.analogRead(LIGHT_PORT)
-            dial_val = grovepi.analogRead(DIAL_PORT)
+            #usrange = grovepi.ultrasonicRead(ULTRASONIC_PORT)
+            #light_val = grovepi.analogRead(LIGHT_PORT)
+            #dial_val = grovepi.analogRead(DIAL_PORT)
 
             # --- 押しっぱなし処理（長押し検出など）
             if pressed:
@@ -161,9 +161,7 @@ async def button_loop(ws: websockets.WebSocketClientProtocol):
                 setRGB(color, color, color)
 
                 # LCD にステータス表示
-                text = "cnt={0} dist={1} dial={2} light={3}".format(
-                    count, usrange, dial_val, light_val
-                )
+                text = "cnt={0}".format(count)
                 setText(text)
 
                 # ★ここが一番大事：G_server へ送信！
@@ -173,7 +171,7 @@ async def button_loop(ws: websockets.WebSocketClientProtocol):
             prev_pressed = pressed
 
             # 少し待つ（asyncio版）
-            await asyncio.sleep(LOOP_HZ)
+            #await asyncio.sleep(LOOP_HZ)
 
         except KeyboardInterrupt:
             print("[HW] KeyboardInterrupt, cleaning up...")
